@@ -1,0 +1,375 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+df <- read.csv("merged-new-version2.csv", header =TRUE, sep=",")
+#df <- df[!complete.cases(df), ]  
+df
+```
+```{r}
+df <- read.csv("merged-variety.csv", header =TRUE, sep=",")
+#df <- df[!complete.cases(df), ]  
+df
+```
+```{r}
+df <- read.csv("merged-added-functions.csv", header =TRUE, sep=",")
+#df <- df[!complete.cases(df), ]  
+df
+```
+
+```{r}
+df <- read.csv("merged-sim-best.csv", header =TRUE, sep=",")
+#df <- df[!complete.cases(df), ]  
+df
+```
+
+```{r}
+df$ln_novelty <- log(df$novelty+1)
+df$ln_total <- log(df$total+1) 
+df$ln_exploration <- log(df$exploration+1) 
+df$group = factor(df$group)
+df$ln_len_unique <- log(df$len_unique+1) 
+df$ln_added_sum <- log(df$added_sum+1)
+df$ln_sim_best <- log(df$sim.to.best+1)
+df$ln_count <- log(df$count+1)
+df$ln_exploration <- log(df$exploration+1)
+df$group <- as.factor(df$group)
+df
+```
+```{r}
+df_new <- df[, sapply(df, is.numeric)]
+cor(df_new, use = "complete.obs", method = "spearman" )
+```
+
+
+```{r}
+library(car)
+mod <- lm(ln_total~ ln_novelty + ln_len_unique, data=df)
+vif(mod)
+```
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod <- lm(ln_added_sum ~ factor(group), data=df)
+summary(mod)
+```
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod <- lm(ln_novelty ~ factor(group), data=df)
+summary(mod)
+```
+
+
+
+
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod <- lm(ln_total~ factor(group), data=df)
+summary(mod)
+```
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod_exp <- lm(ln_novelty ~ factor(group) + exploration, data=df)
+summary(mod_exp)
+```
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod_exp_int <- lm(ln_novelty ~ factor(group) + exploration + factor(group) * exploration, data=df)
+summary(mod_exp_int)
+```
+
+```{r}
+anova(mod_exp_int, mod_exp)
+```
+
+```{r}
+anova(mod, mod_exp)
+```
+
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod <- lm(ln_exploration ~ factor(group), data=df)
+summary(mod)
+```
+```{r}
+library(modelsummary)
+
+`Mean ± SD` <- function(x) { 
+    sprintf("%.0f ± %.0f", round(mean(x)), round(sd(x)))
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod <- lm(ln_len_unique ~ factor(group), data=df)
+summary(mod)
+```
+
+```{r}
+tapply(df$ln_len_unique, df$group, summary)
+```
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod <- lm(ln_total ~ factor(group), data=df)
+summary(mod)
+```
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod <- lm(ln_sim_best ~ factor(group), data=df)
+summary(mod)
+```
+
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod <- lm(ln_novelty ~ factor(group), data=df)
+summary(mod)
+```
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod2 <- lm(ln_exploration ~ factor(group) + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, data=df)
+summary(mod2)
+```
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod3 <- lm(ln_exploration ~  Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, data=df)
+summary(mod3)
+```
+```{r}
+anova(mod2, mod3)
+```
+
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod <- lm(ln_novelty ~ factor(group) + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, data=df)
+summary(mod)
+```
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod1 <- lm(ln_novelty ~ factor(group) + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, data=df)
+summary(mod1)
+```
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod4 <- lm(ln_novelty ~ Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + count, data=df)
+summary(mod4)
+```
+
+
+
+```{r}
+anova(mod1, mod4)
+```
+
+
+```{r}
+library(lmerTest)
+fit.lmer <- lmer(ln_novelty ~ factor(group) + ( 1 |phase) , data = df, REML= FALSE)
+summary(fit.lmer)
+``` 
+
+```{r}
+library(lmerTest)
+fit.lmer <- lmer(ln_exploration ~ factor(group) + ( 1 |phase) , data = df, REML= FALSE)
+summary(fit.lmer)
+```
+```{r}
+library(lmerTest)
+fit.lmer <- lmer(ln_exploration ~ factor(group) + ( 1 |phase) + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 , data = df, REML= FALSE)
+summary(fit.lmer)
+```
+
+
+
+```{r}
+library(lmerTest)
+fit.lmer <- lmer(ln_total ~ factor(group) + ( 1 |phase), data = df, REML= FALSE)
+summary(fit.lmer)
+```
+```{r}
+library(lmerTest)
+fit.lmer <- lmer(ln_total ~ factor(group) + ( 1 |phase) + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 , data = df, REML= FALSE)
+summary(fit.lmer)
+```
+
+
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod <- lm(ln_novelty ~ factor(group) * exploration + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, data=df)
+summary(mod)
+```
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod <- lm(ln_novelty ~ factor(group) + exploration + factor(group) * exploration + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, data=df)
+summary(mod)
+```
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod <- lm(ln_novelty ~ factor(group) + exploration  + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, data=df)
+summary(mod)
+```
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod <- lm(ln_total ~ factor(group) + exploration  + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, data=df)
+summary(mod)
+```
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod <- lm(ln_total ~ factor(group) + exploration  + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + factor(group) * exploration, data=df)
+summary(mod)
+```
+
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod <- lm(ln_novelty ~ factor(group) + exploration  + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + factor(group) * exploration, data=df)
+summary(mod)
+```
+
+
+```{r}
+tapply(df$ln_novelty, df$group, summary)
+```
+
+```{r}
+tapply(df$ln_total, df$group, summary)
+```
+```{r}
+tapply(df$ln_exploration, df$group, summary)
+```
+
+```{r}
+tapply(df$ln_len_unique, df$group, summary)
+```
+```{r}
+tapply(df$ln_sim_best, df$group, summary)
+```
+```{r}
+tapply(df$ln_added_sum, df$group, summary)
+```
+
+
+```{r}
+#library(vtree)
+#vtree(df, "group")
+```
+```{r}
+#vtree(df, c("phase", "group"), 
+#   fillcolor = c( phase = "#e7d4e8", group = "#99d8c9"),
+#   horiz = FALSE)
+```
+
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod5 <- lm(ln_total ~ factor(group) + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, data=df)
+summary(mod5)
+```
+
+```{r}
+df$group <- relevel(df$group, ref = "3")
+mod6 <- lm(ln_total ~ Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + count, data=df)
+summary(mod6)
+```
+
+```{r}
+anova(mod5, mod6)
+```
+
+
+
+```{r}
+with(df, interaction.plot(group, phase, ln_total, ylim=c(0, max(ln_total)))) # interaction plot
+```
+
+```{r}
+with(df, interaction.plot(group, phase, ln_novelty, ylim=c(0, max(ln_novelty)))) # interaction plot
+```
+
+```{r}
+with(df, interaction.plot(group, phase, ln_exploration, ylim=c(0, max(ln_exploration)))) # interaction plot
+```
+
+
+
+```{r}
+with(df, interaction.plot(group, phase, ln_novelty, ylim=c(0, max(ln_novelty)))) # interaction plot
+```
+```{r}
+df$stage <- with(df, phase)
+library(dplyr)
+mean_data <- group_by(df, group, stage) %>%
+             summarise(ln_novelty= mean(ln_novelty, na.rm = TRUE))
+library(ggplot2)
+ggplot(na.omit(mean_data), aes(x = stage, y = ln_novelty, colour = group)) +
+  geom_point() + geom_line() + theme_bw()
+```
+```{r}
+df$stage <- with(df, phase)
+library(dplyr)
+mean_data <- group_by(df, group, stage) %>%
+             summarise(ln_exploration= mean(ln_exploration, na.rm = TRUE))
+library(ggplot2)
+ggplot(na.omit(mean_data), aes(x = stage, y = ln_exploration, colour = group)) +
+  geom_point() + geom_line() + theme_bw()
+```
+
+```{r}
+df$phase <- df$phase+1
+library(dplyr)
+mean_data <- group_by(df, group, phase) %>%
+             summarise(ln_total= mean(ln_total, na.rm = TRUE))
+library(ggplot2)
+ggplot(na.omit(mean_data), aes(x = phase, y = ln_total, colour = group)) +
+  geom_point() + geom_line() + theme_bw()
+
+```
+
+```{r}
+library(modelsummary)
+
+`Mean ± SD` <- function(x) { 
+    sprintf("%.0f ± %.0f", round(mean(x)), round(sd(x)))
+}
+```
+
+```{r}
+library(dplyr)
+
+with(df, factor(group, 
+    levels = c(0, 1, 2, 3), labels = c('No Transparency', 'Performance Transparency', 'Solution Transparency', 'Full Transparency')))
+
+
+datasummary(
+    ln_exploration * (Min + Max + `Mean ± SD`) +
+    ln_novelty * (Min + Max + `Mean ± SD`) +
+    ln_total * (Min + Max + `Mean ± SD`) ~
+    1 + group,
+    data = df, output = "latex")
+```
+

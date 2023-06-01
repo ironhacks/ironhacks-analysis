@@ -1,0 +1,171 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+
+```{r}
+library(mgcv)
+library(visreg)
+df1 <- read.csv("output/final_functions.csv")
+# fit a smooth which varies by comparison_type
+df1$type <- factor(df1$type)
+b <- gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df1, family = betar(link="logit"), method = "REML")
+summary(b)
+#a <- lm(dist_search ~ stage * type, data = df1)
+#summary(a)
+#visreg(b, yvar = "dist_search", xvar = "stage", ylab= "dist_search",  by = "type", data = df1, method = "REML")
+# transform from log-odds to probabilities scale, transform to 0 and 1
+plot(b, pages = 1, trans = plogis, shift = coef(b)[1], shade = TRUE, shade.col = "lightgreen", col= "purple")
+plot(b, shade = TRUE, pages = 1, scale = 0, seWithMean = TRUE)
+```
+
+```{r}
+vis.gam(b, theta = 120, n.grid = 50, lwd = 0.2)
+```
+
+
+
+```{r}
+c1 <- gam(dist_search ~ s(stage, k = 4, fx = TRUE) + type, data = df1, family = betar(link="logit"), method = "REML")
+c2 <- gam(dist_search ~ s(stage, k = 4, by = type, fx= TRUE) + type, data = df1, family = betar(link="logit"), method = "REML")
+AIC(c1, c2)
+```
+
+```{r}
+c1 <- lm(dist_search ~ stage + type, data = df1, family = betar(link="logit"), method = "REML")
+c2 <- gam(dist_search ~ s(stage, k = 4, by = type, fx= TRUE) + type, data = df1, family = betar(link="logit"), method = "REML")
+AIC(c1, c2)
+```
+
+
+
+```{r}
+library(ggplot2)
+ggplot(df1, aes(x = stage, y = dist_search)) + geom_point() +
+    geom_line(colour = "red", size = 1.2, aes(y = fitted(c1))) +
+    geom_line(colour = "blue", size = 1.2, aes(y = fitted(c2))) +
+    theme_bw()
+```
+
+
+```{r}
+library(mgcv)
+library(visreg)
+df <- read.csv("final_visual.csv")
+df2 <- subset(df, df$type != "simple")  
+# fit a smooth which varies by comparison_type
+df2$type <- factor(df2$type)
+b2 <- gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df2, family = betar(link="logit"), method = "REML")
+summary(b2)
+#visreg(b2, xvar = "stage", by = "type", data = df2, method = "REML")
+plot(b2, pages = 1, trans = plogis, shift = coef(b)[1], shade = TRUE, shade.col = "lightgreen", col= "purple")
+plot(b2, shade = TRUE, pages = 1, scale = 0, seWithMean = TRUE)
+```
+
+
+
+```{r}
+
+df <- read.csv("final_visual.csv")
+df2 <- subset(df, df$type == "complete")  
+# fit a smooth which varies by comparison_type
+df2$stage <- factor(df2$stage)
+mod <- lm(dist_search ~ stage, df2)
+summary(mod)
+```
+
+
+```{r}
+library(visreg)
+library(mgcv)
+df <- read.csv("final_visual.csv")
+#df <- subset(df, df$type != "charts")  
+# fit a smooth which varies by comparison_type
+df$type <- factor(df$type)
+b1 <- gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df, family = quasibinomial(link="logit"), method = "REML")
+summary(b1)
+visreg(b1, xvar = "stage", by = "type", data = df, method = "REML")
+plot(b1, shade = TRUE, pages = 1, scale = 0, seWithMean = TRUE)
+```
+
+```{r}
+library('itsadug')
+gamtabs(b2, caption="Complete Visual, Maps and Simple Visual")
+```
+
+```{r}
+library('itsadug')
+gamtabs(b1, caption="Visual Search vs Functions Search")
+```
+
+
+
+```{r}
+library(mgcv)
+new_df <- subset(df, df$comparison_type != "complete" & df$comparison_type != "charts")  
+df <- read.csv("final_visual.csv")
+# fit a smooth which varies by comparison_type
+df$comparison_type <- factor(df$comparison_type)
+b <- gam(ssim_exp_scale ~ s(stage, k = 4, fx = TRUE, by = comparison_type) + comparison_type, data = df, family = betar(link="logit"), method = "REML")
+summary(b)
+visreg(b, xvar = "stage", by = "comparison_type", data = df, method = "REML")
+```
+
+
+```{r}
+library('itsadug')
+gamtabs(b, caption='Visual vs Code')
+```
+
+
+```{r}
+library(modelsummary)
+options("modelsummary_format_numeric_latex" = "plain")
+models <- list(
+"Vis Code" = gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df1, family = betar(link="logit"), method = "REML"),
+"Without Chart" = gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df2, family = betar(link="logit"), method = "REML"),
+"With Chart" = gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df, family = betar(link="logit"), method = "REML")
+)
+
+modelsummary(models, 
+             estimate = "estimate",
+             stars = TRUE,              
+             statistic = c("Std.Error" = "std.error", 
+                           "t-value" = "statistic"))
+```
+
+
+
+
+```{r}
+par(mfrow=c(1,2))
+plot(b,
+     trans=plogis,
+     shift=coef(b)[1],
+     main = "BETAR GAM Shifted Intercept")
+```
+
+```{r}
+library(mgcv)
+library(visreg)
+new_df <- subset(df, df$comparison_type != "complete" & df$comparison_type != "simple")  
+df <- read.csv("df_color_exp_unal0.csv")
+# fit a smooth which varies by comparison_type
+df$comparison_type <- factor(df$comparison_type)
+b <- gam(ssim_exp_scale ~ s(stage, k = 4, fx = TRUE, by = comparison_type) + comparison_type, data = new_df, family = quasibinomial(), method = "REML")
+summary(b)
+visreg(b, xvar = "stage", by = "comparison_type", data = new_df, method = "REML")
+```
+
+
+```{r}
+library(betareg)
+gy <- betareg(ssim_exp_scale ~ comparison_type * stage, data = df)
+summary(gy)
+```
+

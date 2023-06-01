@@ -1,0 +1,248 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+# comparison between all visual components, charts, maps, simple and complete
+library(mgcv)
+library(betareg)
+library(visreg)
+library(modelsummary)
+df <- read.csv("processed_data/final_visual.csv")
+df$type <- factor(df$type)
+#df$stage <- factor(df$stage)
+#df <- subset(df, type != "charts"&  type != "simple")
+mod <- gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df, family = betar(link="logit"), method = "REML")
+plot(mod,
+     trans=plogis,
+     shift=coef(mod)[1],
+     main = "Beta GAM Shifted Intercept")
+summary(mod)
+modelsummary(mod, metrics = "all", gof_omit = "RMSE|R2")
+```
+
+
+```{r}
+# comparison between linear and non-linear models to see which one is better
+mod1 <- gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df, family = betar(link="logit"), method = "REML")
+mod2 <- gam(dist_search ~ stage + type, data = df, family = betar(link="logit"), method = "REML")
+mod3 <- lm(dist_search ~ stage + type, data = df)
+AIC(mod1, mod2, mod3)
+```
+
+```{r}
+library(mgcv)
+library(betareg)
+library(visreg)
+df <- read.csv("processed_data/except_min_criteria.csv")
+mod <- gam(dist_search ~ s(stage, k = 4, fx = TRUE), data = df, family = quasibinomial(link="logit"), method = "REML")
+summary(mod)
+plot(mod,
+     trans=plogis,
+     shift=coef(mod)[1],
+     main = "Beta GAM Shifted Intercept")
+visreg(mod)
+```
+
+
+
+```{r}
+library(mgcv)
+library(betareg)
+library(visreg)
+df <- read.csv("processed_data/raw_data.csv")
+mod <- gam(dist_search ~ s(stage, k = 4, fx = TRUE), data = df, family = betar(link="logit"), method = "REML")
+summary(mod)
+plot(mod,
+     trans=plogis,
+     shift=coef(mod)[1],
+     main = "Beta GAM Shifted Intercept")
+visreg(mod)
+```
+
+```{r}
+library(mgcv)
+library(betareg)
+library(visreg)
+df <- read.csv("processed_data/novel_20.csv")
+mod <- gam(dist_search ~ s(stage, k = 4, fx = TRUE), data = df, family = quasibinomial(link="logit"), method = "REML")
+summary(mod)
+plot(mod,
+     trans=plogis,
+     shift=coef(mod)[1],
+     main = "Beta GAM Shifted Intercept")
+visreg(mod)
+```
+
+
+
+```{r}
+library(mgcv)
+df <- read.csv("processed_data/all_data.csv")
+df$type <-factor(df$type)
+mod <- gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df, family = betar(link="logit"), method = "REML")
+summary(mod)
+#visreg(b2, xvar = "stage", by = "type", data = df2, method = "REML")
+plot(mod,
+     trans=plogis,
+     shift=coef(mod)[1],
+     main = "Beta GAM Shifted Intercept")
+#plot(mod, shade = TRUE, pages = 1, scale = 0, seWithMean = TRUE)
+```
+```{r}
+library(mgcv)
+df <- read.csv("processed_data/complete_novel.csv")
+df$type <-factor(df$type)
+mod <- gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df, family = betar(link="logit"), method = "REML")
+summary(mod)
+#visreg(b2, xvar = "stage", by = "type", data = df2, method = "REML")
+plot(mod, pages = 1, trans = plogis, shift = coef(mod)[1], shade = TRUE, shade.col = "lightgreen", col= "purple")
+plot(mod, shade = TRUE, pages = 1, scale = 0, seWithMean = TRUE)
+```
+
+```{r}
+library(mgcv)
+df <- read.csv("processed_data/complete_min_criteria.csv")
+df$type <-factor(df$type)
+mod <- gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df, family = betar(link="logit"), method = "REML")
+summary(mod)
+#visreg(b2, xvar = "stage", by = "type", data = df2, method = "REML")
+plot(mod, pages = 1, trans = plogis, shift = coef(mod)[1], shade = TRUE, shade.col = "lightgreen", col= "purple")
+plot(mod, shade = TRUE, pages = 1, scale = 0, seWithMean = TRUE)
+```
+
+
+```{r}
+library(mgcv)
+df <- read.csv("processed_data/except_min_criteria.csv")
+df$type <-factor(df$type)
+mod <- gam(dist_search ~ s(stage, k = 4, fx = TRUE), data = df, family = betar(link="logit"), method = "REML")
+summary(mod)
+#visreg(b2, xvar = "stage", by = "type", data = df2, method = "REML")
+plot(mod, pages = 1, trans = plogis, shift = coef(mod)[1], shade = TRUE, shade.col = "lightgreen", col= "purple")
+plot(mod, shade = TRUE, pages = 1, scale = 0, seWithMean = TRUE)
+```
+
+
+```{r}
+library(mgcv)
+df <- read.csv("processed_data/complete_novel.csv")
+df$type <-factor(df$type)
+mod <- gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df, family = betar(link="logit"), method = "REML")
+summary(mod)
+#visreg(b2, xvar = "stage", by = "type", data = df2, method = "REML")
+plot(mod, pages = 1, trans = plogis, shift = coef(mod)[1], shade = TRUE, shade.col = "lightgreen", col= "purple")
+plot(mod, shade = TRUE, pages = 1, scale = 0, seWithMean = TRUE)
+```
+
+
+```{r}
+library(mgcv)
+df <- read.csv("processed_data/complete_data.csv")
+df$type <-factor(df$type)
+mod <- gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df, family = betar(link="logit"), method = "REML")
+summary(mod)
+#visreg(b2, xvar = "stage", by = "type", data = df2, method = "REML")
+plot(mod, pages = 1,
+     trans=plogis,
+     shift=coef(mod)[1],
+     main = "Beta GAM Shifted Intercept")
+plot(mod, pages = 1, trans = plogis, shift = coef(mod)[1], shade = TRUE, shade.col = "lightgreen", col= "purple")
+plot(mod, shade = TRUE, pages = 1, scale = 0, seWithMean = TRUE)
+modelsummary(mod,  gof_omit = "RMSE|R2", output = "table.docx")
+```
+
+```{r}
+mod1 <- gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df, family = betar(link="logit"), method = "REML")
+mod2 <- gam(dist_search ~ s(stage, k = 4, fx = TRUE) + type, data = df, family = betar(link="logit"), method = "REML")
+mod3 <- lm(dist_search ~ stage + type, data = df)
+AIC(mod1, mod2, mod3)
+plot(mod1, page = 1, all.terms = TRUE)
+```
+
+```{r}
+df$type <- factor(df$type)
+mod1 <- gam(dist_search ~ s(stage, k = 4, fx = TRUE), data = df, family = betar(link="logit"), method = "REML")
+mod2 <- gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df, family = betar(link="logit"), method = "REML")
+AIC(mod1, mod2)
+```
+
+```{r}
+library(mgcv)
+df <- read.csv("processed_data/len_data_novel.csv")
+mod <- gam(len_except_min_criteria ~ s(phase, k = 4, fx = TRUE), data = df, family = poisson(), method = "REML")
+summary(mod)
+#visreg(b2, xvar = "stage", by = "type", data = df2, method = "REML")
+plot(mod,
+     trans=plogis,
+     shift=coef(mod)[1],
+     main = "Beta GAM Shifted Intercept")
+plot(mod, pages = 1, trans = plogis, shift = coef(mod)[1], shade = TRUE, shade.col = "lightgreen", col= "purple")
+plot(mod, shade = TRUE, pages = 1, scale = 0, seWithMean = TRUE)
+modelsummary(mod)
+```
+```{r}
+library(mgcv)
+df <- read.csv("processed_data/len_data_novel.csv")
+mod <- gam(len_novel_20 ~ s(phase, k = 4, fx = TRUE), data = df, family = poisson(), method = "REML")
+summary(mod)
+#visreg(b2, xvar = "stage", by = "type", data = df2, method = "REML")
+plot(mod,
+     trans=plogis,
+     shift=coef(mod)[1],
+     main = "Beta GAM Shifted Intercept")
+plot(mod, pages = 1, trans = plogis, shift = coef(mod)[1], shade = TRUE, shade.col = "lightgreen", col= "purple")
+plot(mod, shade = TRUE, pages = 1, scale = 0, seWithMean = TRUE)
+modelsummary(mod)
+```
+
+```{r}
+library(mgcv)
+df <- read.csv("processed_data/len_data_novel.csv")
+mod <- gam(len_data ~ s(phase, k = 4, fx = TRUE), data = df, family = poisson(), method = "REML")
+summary(mod)
+#visreg(b2, xvar = "stage", by = "type", data = df2, method = "REML")
+plot(mod,
+     trans=plogis,
+     shift=coef(mod)[1],
+     main = "Beta GAM Shifted Intercept")
+plot(mod, pages = 1, trans = plogis, shift = coef(mod)[1], shade = TRUE, shade.col = "lightgreen", col= "purple")
+plot(mod, shade = TRUE, pages = 1, scale = 0, seWithMean = TRUE)
+modelsummary(mod)
+```
+
+```{r}
+library(mgcv)
+df <- read.csv("processed_data/data_novel.csv")
+df$type <- factor(df$type)
+mod <- gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df, family = betar(link="logit"), method = "REML")
+summary(mod)
+#visreg(b2, xvar = "stage", by = "type", data = df2, method = "REML")
+plot(mod,
+     trans=plogis,
+     shift=coef(mod)[1],
+     main = "Beta GAM Shifted Intercept")
+plot(mod, pages = 1, trans = plogis, shift = coef(mod)[1], shade = TRUE, shade.col = "lightgreen", col= "purple")
+plot(mod, shade = TRUE, pages = 1, scale = 0, seWithMean = TRUE)
+modelsummary(mod)
+```
+
+
+```{r}
+library(mgcv)
+df <- read.csv("processed_data/min_criteria_data.csv")
+df$type <- factor(df$type)
+mod <- gam(dist_search ~ s(stage, k = 4, fx = TRUE, by = type) + type, data = df, family = betar(link="logit"), method = "REML")
+summary(mod)
+#visreg(b2, xvar = "stage", by = "type", data = df2, method = "REML")
+plot(mod,
+     trans=plogis,
+     shift=coef(mod)[1],
+     main = "Beta GAM Shifted Intercept")
+plot(mod, pages = 1, trans = plogis, shift = coef(mod)[1], shade = TRUE, shade.col = "lightgreen", col= "purple")
+plot(mod, shade = TRUE, pages = 1, scale = 0, seWithMean = TRUE)
+modelsummary(mod)
+```
+

@@ -1,0 +1,215 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+ 
+```{r}
+# reading input 
+df<-read.csv("input/scores_novelty.csv", header =TRUE, sep=",")
+df <- df[complete.cases(df), ]  
+df
+```
+
+```{r}
+df$group = factor(df$group)
+df$stage = factor(df$stage)
+```
+
+```{r}
+df$log_relational_novelty <- log(df$similarity+1) 
+df$log_count <- log(df$count+1) 
+df$log_improve_total<- log(df$improve.total+350)
+df$Q7_Q7_1 <- log(df$Q7_Q7_1+1)
+df$Q7_Q7_2 <- log(df$Q7_Q7_2+1)
+df$Q8_Q8_1 <- log(df$Q8_Q8_1+1)
+df$Q10 <- log(df$Q10+1)
+df
+```
+
+```{r}
+cols <- c("Q7_Q7_1", "Q7_Q7_2", "Q8_Q8_1", "Q10", "log_relational_novelty", "log_count", "log_improve_total")
+df[cols] <- scale(df[cols])
+df
+```
+
+
+```{r}
+mod0 <- lm(log_relational_novelty ~ Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + log_count, data = df )
+summary(mod0)
+```
+
+```{r}
+mod1 <- lm(log_relational_novelty ~ Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + group, data = df )
+summary(mod1)
+```
+
+```{r}
+library(apaTables)
+mod2<- lm(log_relational_novelty ~ group + log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 , data = df )
+apa.reg.table(mod2, filename = "Table1_relational_novelty.doc", table.number = 1)
+summary(mod2)
+AIC(mod2)
+```
+
+```{r}
+library(modelsummary)
+library(kableExtra)
+library(gt)
+
+rename(df, JavaScript = Q7_Q7_1
+         , Visualization = Q7_Q7_2
+         , Coding = Q8_Q8_1
+         , Aspiration = Q10
+       )
+
+models <- list(
+  "With Treatment"     = lm(log_relational_novelty ~ group + log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 , data = df ),
+  "Without Treatment" = lm(log_relational_novelty ~ log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 , data = df )
+
+) 
+modelsummary(models, output = "table.tex", statistic = "{std.error} ({p.value})")
+
+```
+
+
+
+```{r}
+library(apaTables)
+apa.cor.table(attitude, filename="Table2_correlation.doc", table.number=1)
+```
+
+
+
+```{r}
+table <- aov(log_relational_novelty ~ Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + log_count + group, data = df)
+summary(table)
+```
+```{r}
+forplot <- TukeyHSD(table, which = 'group')
+plot(forplot)
+```
+```{r}
+TukeyHSD(table, which = 'group')
+```
+
+
+
+```{r}
+TukeyHSD(table, which = 'group')
+```
+
+```{r}
+library(apaTables)
+apa.aov.table(lm(log_relational_novelty~group,df),filename = "Example1.doc",table.number = 1)
+```
+
+
+```{r}
+mod2b<- lm(log_relational_novelty ~ Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + log_count + group + log_improve_total, data = df )
+summary(mod2b)
+AIC(mod2b)
+```
+```{r}
+df <- within(df, {
+ group <- factor(group)
+})
+tableb <- aov(log_relational_novelty ~ Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + log_count + group, data = df)
+summary(tableb)
+```
+```{r}
+forplot <- TukeyHSD(tableb, which = 'group')
+plot(forplot)
+```
+```{r}
+TukeyHSD(tableb, which = 'group')
+```
+
+
+```{r}
+anova(mod2, mod2b)
+```
+
+
+```{r}
+mod3<- lm(log_relational_novelty ~ Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + log_count + group + group * log_improve_total, data = df )
+summary(mod3)
+AIC(mod3)
+```
+
+```{r}
+anova(mod2, mod3)
+```
+
+```{r}
+anova(mod2b, mod3)
+```
+
+
+```{r}
+library(car)
+vif(mod3)
+```
+```{r}
+library(lme4)
+mod4<- lmer(log_relational_novelty ~ Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + log_count + group + log_improve_total + ( 1 | stage ) + ( 1 | user2), data = df, REML = FALSE )
+summary(mod4)
+```
+
+```{r}
+library(multcomp)
+summary(glht(mod4, linfct = mcp(group = "Tukey")), test = adjusted("holm"))
+```
+
+```{r}
+# Installing the package 
+install.packages("dplyr") 
+      
+# Loading package 
+library(dplyr) 
+      
+# Structure of dataset in package 
+str(df)
+
+# Installing Packages
+install.packages("quantreg")
+install.packages("ggplot2")
+install.packages("caret")
+  
+# Loading the packages
+library(quantreg)
+library(dplyr)
+library(ggplot2)
+library(caret)
+  
+# Model: Quantile Regression
+Quan_fit <- rq(log_relational_novelty ~ Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + log_count + group + log_improve_total, data = df)
+Quan_fit
+  
+# Summary of Model
+summary(Quan_fit)
+  
+# Plot
+plot(log_relational_novelty ~ Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + log_count + group + log_improve_total, data = df, pch = 16, main = "Plot")
+abline(lm(log_relational_novelty ~ Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + log_count + group + log_improve_total, data = df), col = "red", lty = 2)
+abline(rq(log_relational_novelty ~ Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + log_count + group + log_improve_total, data = df), col = "blue", lty = 2)
+```
+
+## Test for aspirations 
+
+```{r}
+mod5<- lm(log_relational_novelty ~ group * Q10, data = df)
+summary(mod5)
+```
+
+```{r}
+mod5b<- lm(log_relational_novelty ~ group + Q10, data = df)
+summary(mod5b)
+```
+
+```{r}
+anova(mod5, mod5b)
+```
+
+
+

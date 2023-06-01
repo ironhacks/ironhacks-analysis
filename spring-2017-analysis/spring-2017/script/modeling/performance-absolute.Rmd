@@ -1,0 +1,309 @@
+---
+title: "R Notebook"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+# library for LMM 
+
+library(lme4)
+library(lmerTest)
+library(car)
+```
+
+
+
+```{r}
+df<-read.csv("input/scores_commits.csv", header =TRUE, sep=",")
+df <- df[complete.cases(df), ]                  # Apply complete.cases function
+df
+```
+
+```{r}
+# convert to nominal factor
+df$Group = factor(df$Group)
+df$phase = factor(df$phase)
+```
+
+
+```{r}
+df$log_novelty <- log(df$novelty+1) 
+df$log_user_requirement <- log(df$user.requirement+1)
+df$log_infovis <- log(df$infovis+1)
+df$log_total <- log(df$total+1)
+df$log_count <- log(df$count+1)
+df$Q7_Q7_1 <- log(df$Q7_Q7_1+1)
+df$Q7_Q7_2 <- log(df$Q7_Q7_2+1)
+df$Q8_Q8_1 <- log(df$Q8_Q8_1+1)
+df$Q10 <- log(df$Q10+1)
+```
+
+
+```{r}
+# standardizing variables for skills and aspirations. 
+cols <- c("Q7_Q7_1", "Q7_Q7_2", "Q8_Q8_1", "Q10", "log_novelty", "log_user_requirement", "log_infovis", "log_total", "log_count")
+df[cols] <- scale(df[cols])
+df
+```
+```{r}
+mod.reduce.novelty <- lmer( log_novelty ~ log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + ( 1 | phase ), data = df, REML = FALSE)
+summary(mod.reduce.novelty)
+AIC(mod.reduce.novelty)
+BIC(mod.reduce.novelty)
+
+```
+
+
+```{r}
+mod.full.novelty <- lmer( log_novelty ~ factor(Group) + log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + (1 | phase), data = df, REML = FALSE)
+summary(mod.full.novelty)
+AIC(mod.full.novelty)
+BIC(mod.full.novelty)
+anova(mod.full.novelty)
+
+```
+
+```{r}
+anova(mod.reduce.novelty, mod.full.novelty)
+```
+```{r}
+library(ALSM)
+step(lm(log_novelty ~ factor(Group) + log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, data=df),
+method="both", trace = 1 )
+```
+
+```{r}
+mod.reduce.ur <- lm(log_user_requirement ~ log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 , data = df)
+summary(mod.reduce.ur)
+AIC(mod.reduce.ur)
+BIC(mod.reduce.ur)
+```
+
+```{r}
+mod.full.ur <- lm(log_user_requirement ~ factor(Group) + log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, data = df)
+summary(mod.full.ur)
+AIC(mod.full.ur)
+BIC(mod.full.ur)
+```
+```{r}
+anova(mod.reduce.ur, mod.full.ur)
+```
+```{r}
+library(ALSM)
+step(lm(log_user_requirement ~ factor(Group) + log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, data=df),
+method="both", trace = 1 )
+```
+
+
+
+```{r}
+mod.reduce.vis <- lmer( log_infovis ~ log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + ( 1 | phase) , data = df, REML = FALSE)
+summary(mod.reduce.vis)
+AIC(mod.reduce.vis)
+BIC(mod.reduce.vis)
+```
+
+```{r}
+mod.full.vis <- lmer( log_infovis ~ factor(Group) + log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + ( 1 | phase) , data = df, REML = FALSE)
+summary(mod.full.vis)
+AIC(mod.full.vis)
+BIC(mod.full.vis)
+```
+```{r}
+anova(mod.reduce.vis, mod.full.vis)
+```
+```{r}
+library(ALSM)
+step(lm(log_infovis ~ Group + log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, data=df),
+method="both", trace = 1 )
+```
+```{r}
+mod.reduce.total <- lm( log_total ~ log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 , data = df)
+summary(mod.reduce.total)
+AIC(mod.reduce.total)
+BIC(mod.reduce.total)
+```
+
+
+```{r}
+library(apaTables)
+mod.full.total <- lm( log_total ~ Group + log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 , data = df)
+summary(mod.full.total)
+apa.reg.table(mod.full.total, filename = "Table2_total_score_absolute.doc", table.number = 2)
+AIC(mod.full.total)
+BIC(mod.full.total)
+```
+```{r}
+anova(mod.reduce.total, mod.full.total)
+```
+
+```{r}
+# convert to nominal factor
+df$Group = factor(df$Group)
+df$phase = factor(df$phase)
+```
+
+```{r}
+library(plyr)
+ddply(df, ~ Group * phase, function(data) summary(data$log_novelty) )
+ddply(df, ~ Group * phase, summarise, log_novelty.mean=mean(log_novelty), log_novelty.sd = sd(log_novelty))
+```
+```{r}
+# histograms for two factors
+boxplot(log_novelty ~ Group * phase, data = df, xlab="Group.Phase", ylab="log_novelty")
+with(df, interaction.plot(Group, phase, log_novelty, ylim=c(0, max(log_novelty)))) # interaction plot
+```
+
+```{r}
+# histograms for two factors
+boxplot(log_novelty ~ Group * phase, data = df, xlab="Group.Phase", ylab="log_user_requirement")
+with(df, interaction.plot(Group, phase, log_user_requirement, ylim=c(0, max(log_user_requirement)))) # interaction plot
+```
+
+```{r}
+# histograms for two factors
+boxplot(log_novelty ~ Group * phase, data = df, xlab="Group.Phase", ylab="log_infovis")
+with(df, interaction.plot(Group, phase, log_infovis, ylim=c(0, max(log_infovis)))) # interaction plot
+```
+
+```{r}
+# histograms for two factors
+boxplot(log_novelty ~ Group * phase, data = df, xlab="Group.Phase", ylab="log_total")
+with(df, interaction.plot(Group, phase, log_total, ylim=c(0, max(log_total)))) # interaction plot
+```
+
+
+
+
+
+
+```{r}
+m = lmer(log_novelty ~ Group + (1|Student), data=df, REML=FALSE)
+summary(m)
+```
+```{r}
+plot(resid(m, type = "pearson") ~ fitted(m))
+qqnorm(resid(m, type = "pearson"))
+qqline(resid(m, type = "pearson"))
+```
+```{r}
+# library for LMM we will use on relational log_novelty 
+
+library(lme4)
+library(lmerTest)
+library(car)
+```
+
+# set sum-to-zero contrast for ANOVA cells 
+
+```{r}
+contrasts(df$Group) <= "contr.sum"
+contrasts(df$phase) <= "contr.sum"
+```
+
+```{r}
+# phase is nested within group 
+fit <- lm(log_total ~ log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 , data = df)
+summary(fit)
+```
+
+```{r}
+library(multcomp)
+library(lsmeans)
+#summary(glht(fit, lsm(pairwise ~ roup / phase)), test = adjusted(type='holm'))
+```
+
+```{r}
+df
+fit.full <- lm(log_total ~ Group  + log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, data = df)
+summary(fit.full)
+```
+
+```{r}
+anova(fit, fit.full)
+```
+```{r}
+# histograms for two factors
+boxplot(log_total ~ Group * phase, data = df, xlab="Group.Phase", ylab="log_total")
+with(df, interaction.plot(Group, phase, log_total, ylim=c(0, max(log_total)))) # interaction plot
+```
+```{r}
+fit.lmer <- lmer(log_total ~ (1 | Group) + (1| phase:Group), data = df, REML= FALSE)
+summary(fit.lmer)
+```
+
+
+
+```{r}
+library(lmerTest)
+fit.lmer <- lmer(log_total ~ Group  + log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + ( 1 | phase), data = df, REML= FALSE)
+summary(fit.lmer)
+anova(fit.lmer)
+```
+
+```{r}
+library(multcomp)
+summary(glht(fit.lmer, linfct = mcp(Group = "Tukey")), test = adjusted("holm"))
+```
+
+```{r}
+aovresults <- aov(log_total ~ Group  + log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, data = df)
+aovresults
+```
+```{r}
+forplot <- TukeyHSD(aovresults, which = 'Group')
+plot(forplot)
+```
+```{r}
+TukeyHSD(aovresults, which = 'Group')
+```
+
+```{r}
+fit.lmer.reduced <- lmer(log_total ~ log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + ( 1 | phase), data = df, REML=FALSE)
+summary(fit.lmer.reduced)
+```
+
+```{r}
+anova(fit.lmer.reduced, fit.lmer)
+```
+
+
+# User Requirement Score
+
+```{r}
+# phase is nested within group 
+fit.requirement.full <- lmer(log_user_requirement ~  factor(Group) + log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + ( 1 | phase), data = df, REML = FALSE)
+Anova(fit.requirement.full, type=3, test.statistics="F")
+fit.requirement.full
+```
+
+```{r}
+# histograms for two factors
+boxplot(log_user_requirement ~ Group * phase, data = df, xlab="Group.Phase", ylab="log_user_requirement")
+with(df, interaction.plot(Group, phase, log_user_requirement, ylim=c(0, max(log_user_requirement)))) # interaction plot
+```
+
+
+```{r}
+# phase is nested within group 
+fit.requirement <- lmer(log_user_requirement ~  log_count + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 +  ( 1 | phase), data = df, REML = FALSE)
+Anova(fit, type=3, test.statistics="F")
+fit.requirement
+```
+
+```{r}
+plot(resid(m, type = "pearson") ~ fitted(m))
+qqnorm(resid(m, type = "pearson"))
+qqline(resid(m, type = "pearson"))
+```
+
+```{r}                                        
+anova(fit.requirement, fit.requirement.full)
+```
+ 
