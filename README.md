@@ -1,5 +1,9 @@
 # IronHacks Analysis
 
+## Introduction
+
+This repo has the following research questions. 
+
 Research Question 1: What is the individual and joint effect of performance and solution transparency? 
 
 
@@ -13,4 +17,24 @@ Overleaf for Research Question 1: https://www.overleaf.com/1989829568wcvdpdfgrpw
 
 
 Overleaf for Research Question 2: [https://www.overleaf.com/8433175954bzhkgdxjqvvv](https://www.overleaf.com/6328812216zpjzvchqxdcg)
+
+## Data Used
+
+
+## Experimental Setup 
+
+
+## Metrics
+
+Visual Metrics - 
+
+Function Metrics - 
+
+## Related Publications
+
+
+## Funding Source 
+
+
+
 
