@@ -4,33 +4,24 @@ output: html_notebook
 ---
 
 ```{r}
+# load library 
+library(plyr)
+library(car)
+library(ggplot2)
+```
+
+
+```{r}
+# load data f
 df <- read.csv("merged-new-version2.csv", header =TRUE, sep=",")
-#df <- df[!complete.cases(df), ]  
-df
-```
-
-```{r}
 df <- read.csv("merged-variety.csv", header =TRUE, sep=",")
-#df <- df[!complete.cases(df), ]  
-df
-```
-```{r}
 df <- read.csv("merged-added-functions.csv", header =TRUE, sep=",")
-#df <- df[!complete.cases(df), ]  
-df
-```
-
-```{r}
 df <- read.csv("merged-sim-best.csv", header =TRUE, sep=",")
-#df <- df[!complete.cases(df), ]  
 df
 ```
 
-
-
-
-
 ```{r}
+# log transformations 
 df$ln_novelty <- log(df$novelty+1)
 df$ln_total <- log(df$total+1) 
 df$ln_exploration <- log(df$exploration+1) 
@@ -44,8 +35,7 @@ df$group <- as.factor(df$group)
 df
 ```
 ```{r}
-
-library(plyr)
+# histograms for novelty for each group
 mu <- ddply(df, "group", summarise, grp.mean=mean(novelty))
 head(mu)
 
@@ -58,8 +48,35 @@ p+geom_vline(data=mu, aes(xintercept=grp.mean, color="red"),
              linetype="dashed")
 
 ```
+```{r}
+# histograms for total score for each group
+mu <- ddply(df, "group", summarise, grp.mean=mean(total))
+head(mu)
+
+p<-ggplot(df, aes(x=total))+
+  geom_histogram(color="black", fill="white")+
+  facet_grid(group ~ .)
+p
+# Add mean lines
+p+geom_vline(data=mu, aes(xintercept=grp.mean, color="red"),
+             linetype="dashed")
+```
+```{r}
+# histograms for distance of search for each group
+mu <- ddply(df, "group", summarise, grp.mean=mean(exploration))
+head(mu)
+
+p<-ggplot(df, aes(x=exploration))+
+  geom_histogram(color="black", fill="white")+
+  facet_grid(group ~ .)
+p
+# Add mean lines
+p+geom_vline(data=mu, aes(xintercept=grp.mean, color="red"),
+             linetype="dashed")
+```
 
 ```{r}
+# spearman correlation between all variables
 df_new <- df[, sapply(df, is.numeric)]
 cor(df_new, use = "complete.obs", method = "spearman" )
 ```
@@ -72,12 +89,6 @@ vif(mod)
 ```
 
 ```{r}
-
-```
-
-
-
-```{r}
 df$group <- relevel(df$group, ref = "3")
 mod <- lm(ln_added_sum ~ factor(group), data=df)
 summary(mod)
@@ -88,10 +99,6 @@ df$group <- relevel(df$group, ref = "3")
 mod <- lm(ln_novelty ~ factor(group), data=df)
 summary(mod)
 ```
-
-
-
-
 
 ```{r}
 df$group <- relevel(df$group, ref = "3")
