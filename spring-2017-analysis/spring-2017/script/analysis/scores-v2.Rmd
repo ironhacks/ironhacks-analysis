@@ -8,6 +8,7 @@ df <- read.csv("merged-new-version2.csv", header =TRUE, sep=",")
 #df <- df[!complete.cases(df), ]  
 df
 ```
+
 ```{r}
 df <- read.csv("merged-variety.csv", header =TRUE, sep=",")
 #df <- df[!complete.cases(df), ]  
@@ -25,6 +26,10 @@ df <- read.csv("merged-sim-best.csv", header =TRUE, sep=",")
 df
 ```
 
+
+
+
+
 ```{r}
 df$ln_novelty <- log(df$novelty+1)
 df$ln_total <- log(df$total+1) 
@@ -39,6 +44,22 @@ df$group <- as.factor(df$group)
 df
 ```
 ```{r}
+
+library(plyr)
+mu <- ddply(df, "group", summarise, grp.mean=mean(novelty))
+head(mu)
+
+p<-ggplot(df, aes(x=novelty))+
+  geom_histogram(color="black", fill="white")+
+  facet_grid(group ~ .)
+p
+# Add mean lines
+p+geom_vline(data=mu, aes(xintercept=grp.mean, color="red"),
+             linetype="dashed")
+
+```
+
+```{r}
 df_new <- df[, sapply(df, is.numeric)]
 cor(df_new, use = "complete.obs", method = "spearman" )
 ```
@@ -49,6 +70,12 @@ library(car)
 mod <- lm(ln_total~ ln_novelty + ln_len_unique, data=df)
 vif(mod)
 ```
+
+```{r}
+
+```
+
+
 
 ```{r}
 df$group <- relevel(df$group, ref = "3")
@@ -255,6 +282,17 @@ summary(mod)
 ```{r}
 tapply(df$ln_novelty, df$group, summary)
 ```
+```{r}
+# get the mean and standard deviation next to each other
+tapply(df$ln_novelty, df$group, sd)
+tapply(df$ln_total, df$group, sd)
+tapply(df$ln_exploration, df$group, sd)
+```
+```{r}
+hist(df$ln_novelty, by = df$group)
+```
+
+
 
 ```{r}
 tapply(df$ln_total, df$group, summary)
