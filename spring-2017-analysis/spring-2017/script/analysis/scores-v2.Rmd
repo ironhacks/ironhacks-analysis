@@ -3,6 +3,7 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+
 ```{r}
 # load library 
 library(plyr)
@@ -34,6 +35,13 @@ df$ln_exploration <- log(df$exploration+1)
 df$group <- as.factor(df$group)
 df
 ```
+Section 1: 
+
+Group 0 ( No Transparency )
+Group 1 ( Performance Transparency )
+Group 2 ( Solution Transparency )
+Group 3 ( Full Transparency )
+g
 ```{r}
 # histograms for novelty for each group
 mu <- ddply(df, "group", summarise, grp.mean=mean(novelty))
@@ -283,6 +291,19 @@ summary(mod)
 df$group <- relevel(df$group, ref = "3")
 mod <- lm(ln_novelty ~ factor(group) + exploration  + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10 + factor(group) * exploration, data=df)
 summary(mod)
+```
+```{r}
+# Descriptive statistics for mean and sd
+x <- df$novelty
+factor <- df$group
+
+
+descriptive.novelty <- function(x) c(mean = mean(x), sd = sd(x), median = median(x))
+simplify2array(tapply(x, factor, descriptive.novelty))
+```
+
+```{r}
+help("function")
 ```
 
 
