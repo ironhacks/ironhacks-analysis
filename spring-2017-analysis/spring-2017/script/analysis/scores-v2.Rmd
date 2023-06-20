@@ -94,6 +94,17 @@ ggplot(df,aes(x=group))+geom_boxplot(aes(lower=mean-sd,upper=mean+sd,middle=mean
 ```
 
 ```{r}
+df %>%
+  ggplot(aes(sample = df)) +
+  geom_qq() + geom_qq_line() +
+  facet_wrap(~group, scales = "novelty")
+
+```
+
+
+
+
+```{r}
 # spearman correlation between all variables
 df_new <- df[, sapply(df, is.numeric)]
 cor(df_new, use = "complete.obs", method = "spearman" )
