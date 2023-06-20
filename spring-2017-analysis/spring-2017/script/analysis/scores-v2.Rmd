@@ -41,7 +41,7 @@ Group 0 ( No Transparency )
 Group 1 ( Performance Transparency )
 Group 2 ( Solution Transparency )
 Group 3 ( Full Transparency )
-g
+
 ```{r}
 # histograms for novelty for each group
 mu <- ddply(df, "group", summarise, grp.mean=mean(novelty))
@@ -81,6 +81,16 @@ p
 # Add mean lines
 p+geom_vline(data=mu, aes(xintercept=grp.mean, color="red"),
              linetype="dashed")
+```
+```{r}
+# Descriptive Statistics ( mean and sd )
+df <- ddply(df,~group,summarise,mean=mean(novelty),sd=sd(novelty))
+df
+```
+
+```{r}
+# Boxplots
+ggplot(df,aes(x=group))+geom_boxplot(aes(lower=mean-sd,upper=mean+sd,middle=mean,ymin=mean-3*sd,ymax=mean+3*sd),stat="identity")
 ```
 
 ```{r}
