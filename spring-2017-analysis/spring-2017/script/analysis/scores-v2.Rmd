@@ -101,30 +101,50 @@ ggplot(df, aes(sample = ln_novelty, colour = factor(group))) +
   stat_qq_line()
 ```
 
+ 
 
 ```{r}
 # spearman correlation between all variables
 df_new <- df[, sapply(df, is.numeric)]
 cor(df_new, use = "complete.obs", method = "spearman" )
 ```
+The residuals should be approximately normally distributed. The Shapiro-Wilk test can be used to check the normal distribution of residuals. Null hypothesis: data is drawn from a normal distribution.
+
+```{r}
+# output
+# Shapiro-Wilk normality test
+shapiro.test(resid(aov(ln_novelty ~ group, data = df)))
+```
+If the sample size is sufficiently large (n > 30), the moderate departure from normality can be allowed.
+
+In addition, QQ plots and histograms can be used to assess the assumptions of normality
+
+Assumptions of homogeneity of variances
+The variance should be similar for all genotypes. Bartlett’s test can be used to check the
+homogeneity of variances. Null hypothesis: samples from populations have equal variances.
+
+```{r}
+bartlett.test(ln_novelty ~ group, data = df)
+```
+
 ANCOVA 
 
 ```{r}
-anova_test(data = df, formula = ln_novelty ~ group, type = 3, detailed = TRUE) # type 3 SS should be used in ANCOVA
+anova_test(data = df, formula = ln_novelty ~ group + Q7_Q7_1 + Q7_Q7_2 + Q8_Q8_1 + Q10, type = 3, detailed = TRUE) # type 3 SS should be used in ANCOVA
 ```
-The group  is significant suggesting it is an important predictor of genotypes yield.
+The group  is significant suggesting it is an important predictor of novelty
 
 
 ```{r}
 # Get adjusted means,
-adj_means <- emmeans_test(data = df, formula = novelty ~ group)
+adj_means <- emmeans_test(data = df, formula = ln_novelty ~ group, covariate = c(Q7_Q7_1, Q7_Q7_2, Q8_Q8_1, Q10))
 get_emmeans(adj_means)
 ```
 
 emmeans gives the estimated marginal means (EMMs) which is also known as least-squares means. EMMs are adjusted means for each genotype. Group 3 has highest novelty score. 
 
 ```{r}
-emmeans_test(data = df, formula = novelty ~ group, covariate = Q7_Q7_1, p.adjust.method = "fdr")
+emmeans_test(data = df, formula = ln_novelty ~ group, covariate = c(Q7_Q7_1, Q7_Q7_2, Q8_Q8_1, Q10), p.adjust.method = "fdr")
 ```
 From ANCOVA, we know that group are statistically significant, but ANCOVA does not tell which genotypes are significantly different from each other.
 
