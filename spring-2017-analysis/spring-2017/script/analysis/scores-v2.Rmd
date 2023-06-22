@@ -9,14 +9,15 @@ output: html_notebook
 library(plyr)
 library(car)
 library(ggplot2)
+library(rstatix)
 ```
 
 
 ```{r}
 # load data f
-df <- read.csv("merged-new-version2.csv", header =TRUE, sep=",")
-df <- read.csv("merged-variety.csv", header =TRUE, sep=",")
-df <- read.csv("merged-added-functions.csv", header =TRUE, sep=",")
+# df <- read.csv("merged-new-version2.csv", header =TRUE, sep=",")
+# df <- read.csv("merged-variety.csv", header =TRUE, sep=",")
+# df <- read.csv("merged-added-functions.csv", header =TRUE, sep=",")
 df <- read.csv("merged-sim-best.csv", header =TRUE, sep=",")
 df
 ```
@@ -83,27 +84,22 @@ p+geom_vline(data=mu, aes(xintercept=grp.mean, color="red"),
              linetype="dashed")
 ```
 ```{r}
-# Descriptive Statistics ( mean and sd )
-df <- ddply(df,~group,summarise,mean=mean(novelty),sd=sd(novelty))
-df
+# Descriptive Statistics ( mean and sd ) for ln_novelty
+df_describe <- ddply(df,~group,summarise,mean=mean(ln_novelty),sd=sd(novelty))
+df_describe
 ```
 
 ```{r}
-# Boxplots
-ggplot(df,aes(x=group))+geom_boxplot(aes(lower=mean-sd,upper=mean+sd,middle=mean,ymin=mean-3*sd,ymax=mean+3*sd),stat="identity")
+# Boxplots for novelty
+ggplot(df_describe,aes(x=group))+geom_boxplot(aes(lower=mean-sd,upper=mean+sd,middle=mean,ymin=mean-3*sd,ymax=mean+3*sd),stat="identity")
 ```
 
 ```{r}
-ggplot(data = df1, aes(sample=vals)) +
-  geom_qq() + 
-  geom_qq_line(color="red") + 
-  xlab("Theoretical") +
-  ylab("Sample") +
-  facet_grid(y ~ z)
-
+# qqplot for ln_novelty
+ggplot(df, aes(sample = ln_novelty, colour = factor(group))) +
+  stat_qq() +
+  stat_qq_line()
 ```
-
-
 
 
 ```{r}
@@ -111,7 +107,28 @@ ggplot(data = df1, aes(sample=vals)) +
 df_new <- df[, sapply(df, is.numeric)]
 cor(df_new, use = "complete.obs", method = "spearman" )
 ```
+ANCOVA 
 
+```{r}
+anova_test(data = df, formula = ln_novelty ~ group, type = 3, detailed = TRUE) # type 3 SS should be used in ANCOVA
+```
+The group  is significant suggesting it is an important predictor of genotypes yield.
+
+
+```{r}
+# Get adjusted means,
+adj_means <- emmeans_test(data = df, formula = novelty ~ group)
+get_emmeans(adj_means)
+```
+
+emmeans gives the estimated marginal means (EMMs) which is also known as least-squares means. EMMs are adjusted means for each genotype. Group 3 has highest novelty score. 
+
+```{r}
+emmeans_test(data = df, formula = novelty ~ group, covariate = Q7_Q7_1, p.adjust.method = "fdr")
+```
+From ANCOVA, we know that group are statistically significant, but ANCOVA does not tell which genotypes are significantly different from each other.
+
+To know the genotypes with statistically significant differences, I will perform the post-hoc test with the Benjamini-Hochberg FDR method for multiple hypothesis testing at a 5% cut-off
 
 ```{r}
 library(car)
