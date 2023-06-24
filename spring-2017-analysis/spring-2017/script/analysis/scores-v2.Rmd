@@ -33,6 +33,8 @@ df$ln_added_sum <- log(df$added_sum+1)
 df$ln_sim_best <- log(df$sim.to.best+1)
 df$ln_count <- log(df$count+1)
 df$ln_exploration <- log(df$exploration+1)
+
+# transform the group into factor level
 df$group <- as.factor(df$group)
 df
 ```
@@ -93,9 +95,15 @@ df_describe
 # Boxplots for novelty
 ggplot(df_describe,aes(x=group))+geom_boxplot(aes(lower=mean-sd,upper=mean+sd,middle=mean,ymin=mean-3*sd,ymax=mean+3*sd),stat="identity")
 ```
+Assumptions Test for ANCOVA
+
+(1) Nornality Test 
+(2) Homogeneity Test
+(3) Linearity 
+(4) Independence 
 
 ```{r}
-# qqplot for ln_novelty
+# qqplot for ln_novelty to check for normality 
 ggplot(df, aes(sample = ln_novelty, colour = factor(group))) +
   stat_qq() +
   stat_qq_line()
@@ -120,8 +128,14 @@ If the sample size is sufficiently large (n > 30), the moderate departure from n
 In addition, QQ plots and histograms can be used to assess the assumptions of normality
 
 Assumptions of homogeneity of variances
+
 The variance should be similar for all genotypes. Bartlett’s test can be used to check the
 homogeneity of variances. Null hypothesis: samples from populations have equal variances.
+
+```{r}
+# normality test on dependent variable
+shapiro.test(df$ln_novelty)
+```
 
 ```{r}
 bartlett.test(ln_novelty ~ group, data = df)
