@@ -3,6 +3,9 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+# Section 1: Data Loading and Data Transformations
+
+## Load library 
 
 ```{r}
 # load library 
@@ -12,9 +15,9 @@ library(ggplot2)
 library(rstatix)
 ```
 
+## Load Data
 
 ```{r}
-# load data f
 # df <- read.csv("merged-new-version2.csv", header =TRUE, sep=",")
 # df <- read.csv("merged-variety.csv", header =TRUE, sep=",")
 # df <- read.csv("merged-added-functions.csv", header =TRUE, sep=",")
@@ -22,8 +25,9 @@ df <- read.csv("merged-sim-best.csv", header =TRUE, sep=",")
 df
 ```
 
+# Perform log transformation to reduce skewness. 
+
 ```{r}
-# log transformations 
 df$ln_novelty <- log(df$novelty+1)
 df$ln_total <- log(df$total+1) 
 df$ln_exploration <- log(df$exploration+1) 
@@ -36,58 +40,88 @@ df$ln_exploration <- log(df$exploration+1)
 df$group <- as.factor(df$group)
 df
 ```
-Section 1: 
+
+# Section 2: Visulizations 
+
+## Visualize Data to examine skewness
+
+### Legends
 
 Group 0 ( No Transparency )
+
 Group 1 ( Performance Transparency )
+
 Group 2 ( Solution Transparency )
+
 Group 3 ( Full Transparency )
 
+### Histograms for ln_novelty for each group
+
 ```{r}
-# histograms for novelty for each group
-mu <- ddply(df, "group", summarise, grp.mean=mean(novelty))
+
+mu <- ddply(df, "group", summarise, grp.mean=mean(ln_novelty))
 head(mu)
 
 p<-ggplot(df, aes(x=novelty))+
   geom_histogram(color="black", fill="white")+
   facet_grid(group ~ .)
-p
+
 # Add mean lines
 p+geom_vline(data=mu, aes(xintercept=grp.mean, color="red"),
              linetype="dashed")
 
 ```
+
+# Histograms for ln_total for each group
+
 ```{r}
-# histograms for total score for each group
-mu <- ddply(df, "group", summarise, grp.mean=mean(total))
+mu <- ddply(df, "group", summarise, grp.mean=mean(ln_total))
 head(mu)
 
 p<-ggplot(df, aes(x=total))+
   geom_histogram(color="black", fill="white")+
   facet_grid(group ~ .)
-p
+
 # Add mean lines
 p+geom_vline(data=mu, aes(xintercept=grp.mean, color="red"),
              linetype="dashed")
 ```
+# Histograms for ln_exploration for each group
+
 ```{r}
-# histograms for distance of search for each group
-mu <- ddply(df, "group", summarise, grp.mean=mean(exploration))
+mu <- ddply(df, "group", summarise, grp.mean=mean(ln_exploration))
 head(mu)
 
 p<-ggplot(df, aes(x=exploration))+
   geom_histogram(color="black", fill="white")+
   facet_grid(group ~ .)
-p
+
 # Add mean lines
 p+geom_vline(data=mu, aes(xintercept=grp.mean, color="red"),
              linetype="dashed")
 ```
+
+# Section 3: Descriptive Statistics
+
+## Descriptive Statistics ( mean and sd ) for ln_novelty
+
 ```{r}
-# Descriptive Statistics ( mean and sd ) for ln_novelty
 df_describe <- ddply(df,~group,summarise,mean=mean(ln_novelty),sd=sd(novelty))
 df_describe
 ```
+## Descriptive Statistics ( mean and sd ) for ln_total
+
+```{r}
+df_describe <- ddply(df,~group,summarise,mean=mean(ln_total),sd=sd(ln_total))
+df_describe
+```
+## Descriptive Statistics ( mean and sd ) for ln_exploration
+
+```{r}
+df_describe <- ddply(df,~group,summarise,mean=mean(ln_exploration),sd=sd(ln_exploration))
+df_describe
+```
+
 
 ```{r}
 # Boxplots for novelty
