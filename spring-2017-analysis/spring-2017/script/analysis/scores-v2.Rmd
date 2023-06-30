@@ -106,36 +106,64 @@ p+geom_vline(data=mu, aes(xintercept=grp.mean, color="red"),
 ## Descriptive Statistics ( mean and sd ) for ln_novelty
 
 ```{r}
-df_describe <- ddply(df,~group,summarise,mean=mean(ln_novelty),sd=sd(novelty))
-df_describe
+df_describe_novelty <- ddply(df,~group,summarise,mean=mean(ln_novelty),sd=sd(novelty))
+df_describe_novelty
 ```
 ## Descriptive Statistics ( mean and sd ) for ln_total
 
 ```{r}
-df_describe <- ddply(df,~group,summarise,mean=mean(ln_total),sd=sd(ln_total))
-df_describe
+df_describe_total <- ddply(df,~group,summarise,mean=mean(ln_total),sd=sd(ln_total))
+df_describe_total
 ```
 ## Descriptive Statistics ( mean and sd ) for ln_exploration
 
 ```{r}
-df_describe <- ddply(df,~group,summarise,mean=mean(ln_exploration),sd=sd(ln_exploration))
-df_describe
+df_describe_exploration <- ddply(df,~group,summarise,mean=mean(ln_exploration),sd=sd(ln_exploration))
+df_describe_exploration
 ```
-
+## Boxplots for ln_novelty with mean and sd. 
 
 ```{r}
-# Boxplots for novelty
-ggplot(df_describe,aes(x=group))+geom_boxplot(aes(lower=mean-sd,upper=mean+sd,middle=mean,ymin=mean-3*sd,ymax=mean+3*sd),stat="identity")
+ggplot(df_describe_novelty,aes(x=group))+geom_boxplot(aes(lower=mean-sd,upper=mean+sd,middle=mean,ymin=mean-3*sd,ymax=mean+3*sd),stat="identity")
 ```
 
+## Boxplots for ln_total with mean and sd. 
+
 ```{r}
-# qqplot for ln_novelty
+ggplot(df_describe_total,aes(x=group))+geom_boxplot(aes(lower=mean-sd,upper=mean+sd,middle=mean,ymin=mean-3*sd,ymax=mean+3*sd),stat="identity")
+```
+
+## Boxplots for ln_exploration with mean and sd. 
+
+```{r}
+ggplot(df_describe_exploration,aes(x=group))+geom_boxplot(aes(lower=mean-sd,upper=mean+sd,middle=mean,ymin=mean-3*sd,ymax=mean+3*sd),stat="identity")
+```
+
+# Section 4: Checking Assumptions
+
+## ggplot visualization for ln_novelty
+
+```{r}
 ggplot(df, aes(sample = ln_novelty, colour = factor(group))) +
   stat_qq() +
   stat_qq_line()
 ```
+## ggplot visualization for ln_total
 
- 
+```{r}
+ggplot(df, aes(sample = ln_total, colour = factor(group))) +
+  stat_qq() +
+  stat_qq_line()
+```
+
+## ggplot visualization for ln_exploration
+
+```{r}
+ggplot(df, aes(sample = ln_exploration, colour = factor(group))) +
+  stat_qq() +
+  stat_qq_line()
+```
+
 
 ```{r}
 # spearman correlation between all variables
